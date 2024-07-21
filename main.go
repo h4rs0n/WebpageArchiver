@@ -6,5 +6,6 @@ import (
 )
 
 func main() {
+	common.ParseFlag()
 	api.WebStarter(common.DEBUG)
 }
