@@ -1,7 +1,6 @@
 package common
 
 import (
-	"bytes"
 	"fmt"
 	"golang.org/x/net/html"
 	"io"
@@ -16,33 +15,65 @@ func ExtractHTMLText(htmlContent string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	removeScriptAndStyle(doc)
+	pureHTML := extractText(doc)
+	stringReplacer := strings.NewReplacer(" ", "", "\n", "", "\r", "", "\\n", "")
+	pureHTML = stringReplacer.Replace(pureHTML)
+	// 二次解析保证去除所有标签
+	r = strings.NewReader(pureHTML)
+	doc, err = html.Parse(r)
+	if err != nil {
+		return "", err
+	}
+	removeScriptAndStyle(doc)
+	pureHTML = extractText(doc)
+	pureHTML = stringReplacer.Replace(pureHTML)
+	return pureHTML, nil
+}
 
-	var text bytes.Buffer
-	skip := false
+func removeScriptAndStyle(doc *html.Node) {
+	// BFS
+	queue := []*html.Node{doc}
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
 
-	var f func(*html.Node)
-	f = func(n *html.Node) {
-		if n.Type == html.ElementNode && (n.Data == "style" || n.Data == "script") {
-			skip = true
-		} else if n.Type == html.TextNode && !skip {
-			text.WriteString(strings.TrimSpace(n.Data) + " ")
+		if current == nil {
+			continue
 		}
 
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
-			if n.Type == html.ElementNode && (n.Data == "style" || n.Data == "script") {
-				skip = false
+		for child := current.FirstChild; child != nil; {
+			next := child.NextSibling
+			if child.Type == html.ElementNode && (child.Data == "script" || child.Data == "style") {
+				// 移除后，不应再让 child = child.NextSibling
+				current.RemoveChild(child)
+			} else {
+				// 如果 child 未被移除，才放入队列
+				queue = append(queue, child)
 			}
+			// 切换到下一个兄弟节点
+			child = next
 		}
 	}
+}
 
-	f(doc)
+func extractText(doc *html.Node) string {
+	var builder strings.Builder
+	queue := []*html.Node{doc}
 
-	pureHTML := text.String()
-	pureHTML = strings.ReplaceAll(pureHTML, " ", "")
-	pureHTML = strings.ReplaceAll(pureHTML, "\n", "")
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
 
-	return pureHTML, nil
+		if current.Type == html.TextNode {
+			builder.WriteString(current.Data)
+		}
+
+		for c := current.FirstChild; c != nil; c = c.NextSibling {
+			queue = append(queue, c)
+		}
+	}
+	return builder.String()
 }
 
 func GetHTMLTitle(htmlContent string) (title string, err error) {
