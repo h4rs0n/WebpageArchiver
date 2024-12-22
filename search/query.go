@@ -13,7 +13,7 @@ type Result struct {
 	Title    string `json:"title"`
 	Filename string `json:"filename"`
 	Content  string `json:"content"`
-	Link     string `json:"link"`
+	Domain   string `json:"domain"`
 }
 
 func QueryByKeyword(keyword string, pageNum int64) (string, map[string]int) {
@@ -56,7 +56,7 @@ func QueryByKeyword(keyword string, pageNum int64) (string, map[string]int) {
 
 		result.Id = formattedContent["id"].(string)
 		result.Filename = singleContent["filename"].(string)
-		result.Link = singleContent["link"].(string)
+		result.Domain = singleContent["domain"].(string)
 		result.Title = singleContent["title"].(string)
 		result.Content = formattedContentStr
 
