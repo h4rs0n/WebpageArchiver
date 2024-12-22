@@ -4,7 +4,9 @@ go 1.20
 
 require (
 	github.com/gin-gonic/gin v1.9.1
+	github.com/google/uuid v1.6.0
 	github.com/meilisearch/meilisearch-go v0.26.2
+	golang.org/x/net v0.21.0
 )
 
 require (
@@ -34,7 +36,6 @@ require (
 	github.com/valyala/fasthttp v1.52.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
